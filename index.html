@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sinh viên</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Quản Lý Sinh Viên</h1>
+        <div class="form- group">
+            <input type="text" id="studentName" placeholder="Họ và Tên">
+            <input type="number" id="studentAge" placeholder="Tuổi">
+            <input type="text" id="studentMajor" placeholder="Ngành học">
+            <input type="number" step="0.1" id="studentGpa" placeholder="Điểm GPA">
+            <button id="addBtn">Thêm Sinh Viên</button>
+        </div>
+        <div class="search-group">
+            <input type="text" id="searchInput" placeholder="Tìm kiếm sinh viên ...">
+            <button id="searchBtn">Tìm Kiếm</button>
+        </div>
+        <div id="loading" style="display: none;">Đang Tải...</div>
+        <div id="error" class="error"></div>
+
+        <table id="studentTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Họ Tên</th>
+                    <th>Tuổi</th>
+                    <th>Ngành Học</th>
+                    <th>GPA</th>
+                    <th>Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody id="studentsList"></tbody>
+        </table>
+    </div>
+<script src="api.js"></script>
+<script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,81 @@
+{
+  "students": [
+    {
+      "id": "1",
+      "name": "Nguyễn Văn A",
+      "age": 20,
+      "major": "Công nghệ thông tin",
+      "gpa": 3.2
+    },
+    {
+      "id": "2",
+      "name": "Trần Thị B",
+      "age": 21,
+      "major": "Kinh tế",
+      "gpa": 3.5
+    },
+    {
+      "id": "2de0",
+      "name": "Toan",
+      "age": 28,
+      "major": "CNTT",
+      "gpa": 2.5
+    },
+    {
+      "id": "d31d",
+      "name": "Nguyễn Văn A",
+      "age": 20,
+      "major": "MKT",
+      "gpa": 3
+    },
+    {
+      "id": "c259",
+      "name": "Trần Văn B",
+      "age": 23,
+      "major": "Kinh Tế",
+      "gpa": 3.5
+    },
+    {
+      "id": "3d90",
+      "name": "Nguyễn Văn A",
+      "age": 20,
+      "major": "CNTT",
+      "gpa": 3
+    },
+    {
+      "name": "Nguyễn Văn A",
+      "age": 20,
+      "major": "AAa",
+      "gpa": 1.7,
+      "id": "00f4"
+    },
+    {
+      "name": "Nguyễn Văn hung",
+      "age": 20,
+      "major": "dd",
+      "gpa": 3.2,
+      "id": "9661"
+    },
+    {
+      "name": "Nguyễn Văn hung2",
+      "age": 20,
+      "major": "qw",
+      "gpa": 1.6,
+      "id": "0c01"
+    },
+    {
+      "id": "ab6f",
+      "name": "Nguyễn Văn A",
+      "age": 30,
+      "major": "Thiết Kế",
+      "gpa": 2
+    },
+    {
+      "id": "e22d",
+      "name": "Chinh",
+      "age": 23,
+      "major": "Sư Phạm",
+      "gpa": 2
+    }
+  ]
+}
