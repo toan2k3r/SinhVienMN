@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('searchInput');
     const loadingElement = document.getElementById('loading');
     const errorElement = document.getElementById('error');
+    const sortBtn = document.getElementById("sortBtn");
+    const filterBtn = document.getElementById("filterBtn");
+    const statsBtn = document.getElementById("statsBtn");
 
     const nameInput = document.getElementById('studentName');
     const ageInput = document.getElementById('studentAge');
@@ -16,6 +19,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let totalStudents = 0;
     let editMode = false;
     let editingId = null;
+    let studentsData = [];
+    let studentsDataOriginal = [];
 
     async function displayStudents(resetPage = false) {
         if (resetPage) currentPage = 1;
@@ -24,71 +29,111 @@ document.addEventListener('DOMContentLoaded', function () {
         studentsList.innerHTML = '';
 
         try {
-            let result;
-            let student = await StudentApi.searchStudents(searchInput.value.trim());
-            console.log(student);
+            let keyword = searchInput.value.trim();
+            let studentList = [];
+            if (keyword) {
+                studentList = await StudentApi.searchStudents(keyword);
+            } else {
+                studentList = await StudentApi.getAllStudents();
+            }
 
-            totalStudents = student.length;
+            studentsDataOriginal = [...studentList]; // Lưu bản gốc
+            studentsData = [...studentList];
+
+            totalStudents = studentsData.length;
             const start = (currentPage - 1) * itemsPerPage;
             const end = start + itemsPerPage;
-            const paginationData = student.slice(start, end);
+            const pageData = studentsData.slice(start, end);
 
-            result = {
-                data: paginationData,
-                total: totalStudents,
-                page: currentPage,
-                limit: itemsPerPage,
-                totalStudents: Math.ceil(totalStudents / itemsPerPage)
-            };
-            if (result.data.length === 0) {
-                studentsList.innerHTML = '<tr><td colspan="6" style="text-aline: center;">Không có sinh viên nào</td></tr>';
-                updatePaginationControls();
-                return;
-            }
-            // console.log(result);
-
-            result.data.forEach(student => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-            <td>${student.id}</td>
-            <td>${student.name}</td>
-            <td>${student.age}</td>
-            <td>${student.major}</td>
-            <td>${student.gpa}</td>
-            <td>
-            <button class="action-btn edit-btn" data-id="${student.id}">Sửa</button>
-            <button class="action-btn delete-btn" data-id="${student.id}">Xóa</button> 
-            </td>
-            `;
-                studentsList.appendChild(row)
-            });
-            document.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.addEventListener('click', handleEdit)
-            });
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', handleDelete)
-            });
+            renderStudents(pageData);
             updatePaginationControls();
+
         } catch (error) {
-            errorElement.textContent = 'Lỗi: ${error.message}'
+            errorElement.textContent = `Lỗi: ${error.message}`;
         } finally {
             loadingElement.style.display = 'none';
         }
     }
+
+    function renderStudents(students) {
+        currentStudents = students;
+        studentsList.innerHTML = '';
+
+        if (students.length === 0) {
+            studentsList.innerHTML = `<tr><td colspan="6" style="text-align:center">Không có sinh viên nào</td></tr>`;
+            return;
+        }
+
+        students.forEach(student => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${student.id}</td>
+                <td>${student.name}</td>
+                <td>${student.age}</td>
+                <td>${student.major}</td>
+                <td>${student.gpa}</td>
+                <td>
+                    <button class="edit-btn" data-id="${student.id}">Sửa</button>
+                    <button class="delete-btn" data-id="${student.id}">Xóa</button>
+                </td>
+            `;
+            studentsList.appendChild(row);
+        });
+
+        document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEdit));
+        document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', handleDelete));
+    }
+
+    async function applySort(field, order = 'asc') {
+        const sorted = [...studentsData].sort((a, b) => {
+            if (field === "name" || field === "major") {
+                return order === "asc" ? a[field].localeCompare(b[field]) : b[field].localeCompare(a[field]);
+            } else {
+                return order === "asc" ? a[field] - b[field] : b[field] - a[field];
+            }
+        });
+        studentsData = sorted;
+        currentPage = 1;
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        renderStudents(studentsData.slice(start, end));
+        updatePaginationControls();
+    }
+
+    function showSortModal() {
+        const modal = document.getElementById("modal");
+        const modalBody = document.getElementById('modal-body');
+        modalBody.innerHTML = `
+            <h3>Sắp xếp sinh viên</h3>
+            <select id="sortField">
+                <option value="id">ID</option>
+                <option value="name">Tên</option>
+                <option value="age">Tuổi</option>
+                <option value="gpa">GPA</option>
+                <option value="major">Ngành Học</option>
+            </select>
+            <select id="sortOrder">
+                <option value="asc">Tăng Dần</option>
+                <option value="desc">Giảm Dần</option>
+            </select>
+            <button id="applySort">Áp Dụng</button>
+        `;
+        modal.style.display = "block";
+
+        document.getElementById("applySort").addEventListener("click", () => {
+            const field = document.getElementById("sortField").value;
+            const order = document.getElementById("sortOrder").value;
+            applySort(field, order);
+            modal.style.display = "none";
+        });
+    }
+
     function validateStudent(student) {
         const errors = [];
-        if (!student.name || student.name.length < 2) {
-            errors.push("Tên phải có ít nhất 2 ký tự");
-        }
-        if (!student.age || student.age < 16 || student.age > 50) {
-            errors.push("Tuổi phải từ 16 - 50");
-        }
-        if (!student.major || student.major.length < 2) {
-            errors.push("Ngành học phải có ít nhất 2 ký tự");
-        }
-        if (isNaN(student.gpa) || student.gpa < 0 || student.gpa > 4) {
-            errors.push("GPA phải từ 0 - 4");
-        }
+        if (!student.name || student.name.length < 2) errors.push("Tên phải có ít nhất 2 ký tự");
+        if (!student.age || student.age < 16 || student.age > 50) errors.push("Tuổi phải từ 16 - 50");
+        if (!student.major || student.major.length < 2) errors.push("Ngành học phải có ít nhất 2 ký tự");
+        if (isNaN(student.gpa) || student.gpa < 0 || student.gpa > 4) errors.push("GPA phải từ 0 - 4");
         return errors;
     }
 
@@ -144,8 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function handleDelete(e) {
-        if (!confirm('Bạn có muốn xóa sinh viên này ?')) return;
-
+        if (!confirm('Bạn có muốn xóa sinh viên này?')) return;
         const id = e.target.getAttribute('data-id');
         try {
             await StudentApi.deleteStudent(id);
@@ -156,7 +200,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updatePaginationControls() {
-        const totalPages = Math.ceil(totalStudents / itemsPerPage);
+        const totalPages = Math.ceil(studentsData.length / itemsPerPage);
+        const oldPagination = document.querySelector('.pagination');
+        if (oldPagination) oldPagination.remove();
+
         let paginationHTML = `
             <div class="pagination">
                 <button id="prevPage" ${currentPage === 1 ? 'disabled' : ''}>Trước</button>
@@ -164,20 +211,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 <button id="nextPage" ${currentPage >= totalPages ? 'disabled' : ''}>Tiếp</button>
             </div>
         `;
-        const oldPagination = document.querySelector('.pagination');
-        if (oldPagination) oldPagination.remove();
         studentsList.insertAdjacentHTML('afterend', paginationHTML);
 
         document.getElementById('prevPage')?.addEventListener('click', () => {
             if (currentPage > 1) {
                 currentPage--;
-                displayStudents();
+                const start = (currentPage - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                renderStudents(studentsData.slice(start, end));
+                updatePaginationControls();
             }
         });
+
         document.getElementById('nextPage')?.addEventListener('click', () => {
+            const totalPages = Math.ceil(studentsData.length / itemsPerPage);
             if (currentPage < totalPages) {
                 currentPage++;
-                displayStudents();
+                const start = (currentPage - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                renderStudents(studentsData.slice(start, end));
+                updatePaginationControls();
             }
         });
     }
@@ -190,13 +243,80 @@ document.addEventListener('DOMContentLoaded', function () {
         errorElement.textContent = "";
     }
 
+    sortBtn.addEventListener("click", showSortModal);
+
+    filterBtn.addEventListener('click', () => {
+        const minGpa = parseFloat(prompt("Nhập GPA tối thiểu", "0"));
+        if (isNaN(minGpa)) return;
+
+        // Clone dữ liệu gốc để filter mà không mất dữ liệu ban đầu
+        const filtered = studentsDataOriginal.filter(s => s.gpa >= minGpa);
+        studentsData = filtered;
+        currentPage = 1;
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        renderStudents(studentsData.slice(start, end));
+        updatePaginationControls();
+    });
+
+    statsBtn.addEventListener('click', () => {
+        if (studentsData.length === 0) {
+            alert("Không có dữ liệu để thống kê!");
+            return;
+        }
+
+        const gpaStats = StatisticsService.getGPAStatus(studentsData);
+        const ageStats = StatisticsService.getAgeStats(studentsData);
+        const majorDist = StatisticsService.getMajorDistribution(studentsData);
+        const topStudents = StatisticsService.getTopStudents(studentsData, 5);
+
+        // Hiển thị console (hoặc bạn có thể hiển thị trong modal/stats panel)
+        console.log("GPA Stats:", gpaStats);
+        console.log("Age Stats:", ageStats);
+        console.log("Major Distribution:", majorDist);
+        console.log("Top Students:", topStudents);
+
+        alert(
+            `Thống kê:\n` +
+            `GPA: Trung bình ${gpaStats.average.toFixed(2)}, Min ${gpaStats.min}, Max ${gpaStats.max}\n` +
+            `Tuổi: Trung bình ${ageStats.average.toFixed(1)}, Min ${ageStats.min}, Max ${ageStats.max}\n` +
+            `Số sinh viên: ${gpaStats.total}\n` +
+            `Top 5 GPA: ${topStudents.map(s => s.name + `(${s.gpa})`).join(", ")}`
+        );
+    });
+
     addBtn.addEventListener('click', handleAddOrUpdate);
+
     searchBtn.addEventListener('click', () => displayStudents(true));
+
     searchInput.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             displayStudents(true);
         }
     });
 
+    document.getElementById('exportBtn').addEventListener('click', async () => {
+        try {
+            if (typeof XLSX === 'undefined') {
+                alert("Thư viện XLSX chưa nạp!");
+                return;
+            }
+            const students = await StudentApi.getAllStudents();
+            if (!students || students.length === 0) {
+                alert("Danh sách sinh viên trống");
+                return;
+            }
+            const worksheet = XLSX.utils.json_to_sheet(students);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
+            XLSX.writeFile(workbook, "student.xlsx");
+        } catch (error) {
+            console.error("Export Error:", error);
+            alert("Xuất File Excel thất bại!");
+        }
+    });
+
+    // Load dữ liệu lần đầu
     displayStudents();
 });
+

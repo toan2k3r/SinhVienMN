@@ -149,6 +149,43 @@ class StudentApi {
             throw error;
         }
     }
+static async getStudentsSorted(sortBy = 'id', order = 'asc', page = 1, limit=5){
+try {
+    const response = await fetch(
+        `${API_URL}?_sort=${sortBy}&_order=${order}&_page=${page}&_limit=${limit}`
+    );
+    if (!response.ok) {
+        throw new  Error(`HTTP error! status: ${response.status}`);
+    }
+    const totalCount = parseInt(response.headers.get('X-Total-Count') || 0)
+    const data = await response.json();
+    return{
+        data: data,
+        total: totalCount,
+        page: page,
+        limit: limit,
+        totalPages: Math.ceil(totalCount/limit),
+        order: order
+    };
+} catch (error) {
+    console.error('Error fetching sorted students:',error)
+    throw error
+}
+}
+static async sortByName(order = 'asc', page = 1, limit = 5) {
+    return await this.getStudentsSorted('name', order, page, limit);
+}
 
+static async sortByAge(order = 'asc', page = 1, limit = 5) {
+    return await this.getStudentsSorted('age', order, page, limit);
+}
+
+static async sortByGpa(order = 'asc', page = 1, limit = 5) {
+    return await this.getStudentsSorted('gpa', order, page, limit);
+}
+
+static toggleOrder(currentOrder) {
+    return currentOrder === 'asc' ? 'desc' : 'asc';
+}
 
 }

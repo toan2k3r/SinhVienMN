@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý sinh viên</title>
 </head>
-
 <body>
     <div class="container">
         <h1>Quản Lý Sinh Viên</h1>
-        <div class="form- group">
+        <div class="form-group">
             <input type="text" id="studentName" placeholder="Họ và Tên">
             <input type="number" id="studentAge" placeholder="Tuổi">
             <input type="text" id="studentMajor" placeholder="Ngành học">
@@ -23,7 +21,6 @@
         </div>
         <div id="loading" style="display: none;">Đang Tải...</div>
         <div id="error" class="error"></div>
-
         <table id="studentTable">
             <thead>
                 <tr>
@@ -37,9 +34,29 @@
             </thead>
             <tbody id="studentsList"></tbody>
         </table>
-    </div>
-<script src="api.js"></script>
-<script src="app.js"></script>
-</body>
+        <div class="action-buttons">
+            <button id="exportBtn">Xuất Dữ Liệu</button>
+            <button id="sortBtn">Sắp Xếp</button>
+            <button id="filterBtn">Lọc Nâng Cao</button>
+            <button id="statsBtn">Thống Kê</button>
+        </div>
+        <div id="modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="modal-body"></div>
+            </div>
+        </div>
 
+        <div id="statsPanel" class="stats-panel" style="display: none;">
+            <h3>Thống Kê Sinh Viên</h3>
+            <div id="statsContent"></div>
+        </div>
+    </div>
+    
+    <script src="api.js"></script>
+    <script src="statistics.js"></script>
+    <script src="app.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+</body>
 </html>
